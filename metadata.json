@@ -1,0 +1,6 @@
+{
+  "name": "Une Étape",
+  "description": "Application épurée de productivité zen : objectifs étape par étape, agenda horaire & événements, finances prévisionnelles & dettes, incubateur d'idées et vision de grands rêves.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
