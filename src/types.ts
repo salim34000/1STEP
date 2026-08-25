@@ -140,3 +140,12 @@ export type AppScreen =
   | { type: 'edit'; goalId: string };
 
 
+
+export interface Challenge {
+  id: string;
+  titre: string;
+  description: string;
+  dateCreation: number; // For determining the week
+  termine: boolean;
+  completedAt?: number;
+}

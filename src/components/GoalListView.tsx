@@ -1,3 +1,4 @@
+import { ChallengeWidget } from "./ChallengeWidget";
 import React, { useState } from 'react';
 import { Goal } from '../types';
 import { GoalCard } from './GoalCard';
@@ -48,6 +49,8 @@ export const GoalListView: React.FC<GoalListViewProps> = ({
           Avancez sereinement, une seule étape à la fois.
         </p>
       </div>
+
+      <ChallengeWidget />
 
       {/* Filter Tabs */}
       <div className="flex items-center p-1 bg-slate-100/70 dark:bg-[#252525] border border-slate-200/50 dark:border-zinc-800 rounded-2xl mb-6 text-xs font-medium text-slate-500 dark:text-slate-400">

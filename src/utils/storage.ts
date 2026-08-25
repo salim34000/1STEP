@@ -765,3 +765,63 @@ export function checkDueReminders(
 
   return { updatedGoals, hasTriggered };
 }
+
+const CHALLENGE_STORAGE_KEY = 'une_etape_challenge_v1';
+
+const DEFAULT_CHALLENGES = [
+  { titre: "Déconnexion numérique", description: "Passez 1h sans aucun écran avant de dormir 3 soirs cette semaine." },
+  { titre: "Marche active", description: "Faites au moins 30 minutes de marche sans musique ni podcast." },
+  { titre: "Rangement zen", description: "Désencombrez et nettoyez un petit espace qui vous pèse (ex: un tiroir, votre bureau)." },
+  { titre: "Micro-apprentissage", description: "Apprenez un nouveau mot, concept ou lisez un article sur un sujet inconnu." },
+  { titre: "Reconnaissance", description: "Envoyez un message d'appréciation sincère à un collègue ou un proche." },
+  { titre: "Respiration consciente", description: "Prenez 3 minutes chaque jour pour vous concentrer uniquement sur votre respiration." },
+  { titre: "Finances claires", description: "Passez 15 minutes à réviser vos finances et annuler un abonnement inutile." }
+];
+
+function getStartOfWeek(d = new Date()) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  date.setDate(diff);
+  date.setHours(0,0,0,0);
+  return date.getTime();
+}
+
+export function getStoredChallenge(): import('../types').Challenge | null {
+  try {
+    const raw = localStorage.getItem(CHALLENGE_STORAGE_KEY);
+    const startOfCurrentWeek = getStartOfWeek();
+    
+    let currentChallenge: import('../types').Challenge | null = raw ? JSON.parse(raw) : null;
+    
+    // Check if we need a new challenge (if null, or if it's from a previous week)
+    if (!currentChallenge || getStartOfWeek(new Date(currentChallenge.dateCreation)) < startOfCurrentWeek) {
+      // Pick a random challenge
+      const randomTpl = DEFAULT_CHALLENGES[Math.floor(Math.random() * DEFAULT_CHALLENGES.length)];
+      currentChallenge = {
+        id: `challenge-${Date.now()}`,
+        titre: randomTpl.titre,
+        description: randomTpl.description,
+        dateCreation: Date.now(),
+        termine: false
+      };
+      saveStoredChallenge(currentChallenge);
+    }
+    return currentChallenge;
+  } catch (e) {
+    console.error("Erreur lecture challenge", e);
+    return null;
+  }
+}
+
+export function saveStoredChallenge(challenge: import('../types').Challenge | null): void {
+  try {
+    if (challenge) {
+      localStorage.setItem(CHALLENGE_STORAGE_KEY, JSON.stringify(challenge));
+    } else {
+      localStorage.removeItem(CHALLENGE_STORAGE_KEY);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
