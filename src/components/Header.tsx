@@ -93,9 +93,9 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       <header
         id="app-header"
-        className="sticky top-0 z-30 w-full bg-[#FDFDFD]/90 dark:bg-[#121212]/90 backdrop-blur-md border-b border-slate-100 dark:border-zinc-800/80 px-6 py-4 transition-colors"
+        className="sticky top-0 z-30 w-full bg-[#FDFDFD]/85 dark:bg-[#121212]/85 backdrop-blur-xl border-b border-slate-200/50 dark:border-zinc-800/80 px-4 sm:px-6 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 transition-colors select-none"
       >
-        <div className="max-w-xl md:max-w-4xl mx-auto flex items-center justify-between gap-4">
+        <div className="max-w-xl md:max-w-4xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {showBack && onBack ? (
               <button
@@ -103,18 +103,18 @@ export const Header: React.FC<HeaderProps> = ({
                 type="button"
                 onClick={onBack}
                 aria-label="Retour à la liste"
-                className="p-2 -ml-2 rounded-xl text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60 active:bg-slate-100 dark:active:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1A237E]/20"
+                className="p-2 -ml-1.5 rounded-2xl text-slate-500 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 active:scale-90 transition-all focus:outline-none"
               >
-                <ArrowLeft className="w-5 h-5" strokeWidth={1.5} />
+                <ArrowLeft className="w-5 h-5" strokeWidth={1.75} />
               </button>
             ) : (
-              <div className="w-8 h-8 rounded-xl bg-[#1A237E] dark:bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                <Sparkles className="w-4 h-4 text-white" strokeWidth={1.5} />
+              <div className="w-8 h-8 rounded-2xl bg-[#1A237E] dark:bg-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                <Sparkles className="w-4 h-4 text-white" strokeWidth={1.75} />
               </div>
             )}
 
-            <div>
-              <h1 className="text-lg font-serif font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-serif font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
                 {title}
               </h1>
               {!showBack && (
@@ -125,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {rightAction}
 
             {/* Dark Mode Toggle */}
@@ -142,19 +142,19 @@ export const Header: React.FC<HeaderProps> = ({
               }
               title={
                 theme === 'dark'
-                  ? 'Thème : Nuit Profonde (forcé)'
+                  ? 'Thème : Nuit Profonde'
                   : theme === 'light'
-                  ? 'Thème : Clair (forcé)'
-                  : 'Thème : Système (automatique)'
+                  ? 'Thème : Clair'
+                  : 'Thème : Système'
               }
-              className="p-2 rounded-xl text-slate-400 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-amber-300 hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition-colors relative"
+              className="p-2 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-amber-300 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 active:scale-90 transition-all relative"
             >
               {theme === 'dark' ? (
-                <Moon className="w-4 h-4 text-indigo-400" strokeWidth={1.5} />
+                <Moon className="w-4 h-4 text-indigo-400" strokeWidth={1.75} />
               ) : theme === 'light' ? (
-                <Sun className="w-4 h-4 text-amber-500" strokeWidth={1.5} />
+                <Sun className="w-4 h-4 text-amber-500" strokeWidth={1.75} />
               ) : (
-                <Monitor className="w-4 h-4 text-slate-400 dark:text-slate-300" strokeWidth={1.5} />
+                <Monitor className="w-4 h-4 text-slate-400 dark:text-slate-300" strokeWidth={1.75} />
               )}
             </button>
 
@@ -165,16 +165,16 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setShowNotifModal(true)}
               aria-label="Paramètres de rappels et notifications"
               title="Rappels & Notifications"
-              className={`p-2 rounded-xl transition-colors ${
+              className={`p-2 rounded-2xl active:scale-90 transition-all ${
                 notifPermission === 'granted'
-                  ? 'text-[#1A237E] dark:text-indigo-400 bg-[#1A237E]/5 dark:bg-indigo-950/40'
-                  : 'text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60'
+                  ? 'text-[#1A237E] dark:text-indigo-400 bg-[#1A237E]/10 dark:bg-indigo-950/60'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80'
               }`}
             >
               {notifPermission === 'granted' ? (
-                <BellRing className="w-4 h-4" strokeWidth={1.5} />
+                <BellRing className="w-4 h-4" strokeWidth={1.75} />
               ) : (
-                <Bell className="w-4 h-4" strokeWidth={1.5} />
+                <Bell className="w-4 h-4" strokeWidth={1.75} />
               )}
             </button>
 
@@ -184,13 +184,13 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={handleToggleSound}
               aria-label={soundEnabled ? 'Désactiver le son zen' : 'Activer le son zen'}
               title={soundEnabled ? 'Son zen activé' : 'Son désactivé'}
-              className={`p-2 rounded-xl transition-colors ${
+              className={`p-2 rounded-2xl active:scale-90 transition-all ${
                 soundEnabled
-                  ? 'text-[#1A237E] dark:text-indigo-400 bg-[#1A237E]/5 dark:bg-indigo-950/40'
-                  : 'text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60'
+                  ? 'text-[#1A237E] dark:text-indigo-400 bg-[#1A237E]/10 dark:bg-indigo-950/60'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80'
               }`}
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4" strokeWidth={1.5} /> : <VolumeX className="w-4 h-4" strokeWidth={1.5} />}
+              {soundEnabled ? <Volume2 className="w-4 h-4" strokeWidth={1.75} /> : <VolumeX className="w-4 h-4" strokeWidth={1.75} />}
             </button>
 
             {onOpenBackup && (
@@ -200,9 +200,9 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={onOpenBackup}
                 aria-label="Sauvegarde et restauration des données"
                 title="Sauvegarde & Export"
-                className="p-2 rounded-xl text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition-colors"
+                className="p-2 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 active:scale-90 transition-all"
               >
-                <HardDrive className="w-4 h-4" strokeWidth={1.5} />
+                <HardDrive className="w-4 h-4" strokeWidth={1.75} />
               </button>
             )}
 
@@ -211,9 +211,9 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={() => setShowInfoModal(true)}
               aria-label="Philosophie de l'application"
-              className="p-2 rounded-xl text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition-colors"
+              className="p-2 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-[#1A237E] dark:hover:text-indigo-400 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 active:scale-90 transition-all"
             >
-              <Info className="w-4 h-4" strokeWidth={1.5} />
+              <Info className="w-4 h-4" strokeWidth={1.75} />
             </button>
           </div>
         </div>

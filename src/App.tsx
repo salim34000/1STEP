@@ -348,15 +348,15 @@ export default function App() {
         onOpenBackup={() => setShowBackupModal(true)}
       />
 
-      <main className="flex-1 w-full relative">
+      <main className="flex-1 w-full relative pb-nav-safe">
         <AnimatePresence mode="wait">
           {screen.type === 'list' && (
             <motion.div
               key="screen-list"
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
             >
               <GoalListView
                 goals={goals}
@@ -370,10 +370,10 @@ export default function App() {
           {screen.type === 'agenda' && (
             <motion.div
               key="screen-agenda"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
             >
               <AgendaView
                 goals={goals}
@@ -392,10 +392,10 @@ export default function App() {
           {screen.type === 'finances' && (
             <motion.div
               key="screen-finances"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
             >
               <FinancesView
                 finances={finances}
@@ -410,10 +410,10 @@ export default function App() {
           {screen.type === 'idees' && (
             <motion.div
               key="screen-idees"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
             >
               <IdeasView
                 idees={idees}
@@ -428,10 +428,10 @@ export default function App() {
           {screen.type === 'reves' && (
             <motion.div
               key="screen-reves"
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -16 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
             >
               <DreamsView
                 reves={reves}
@@ -446,10 +446,10 @@ export default function App() {
           {screen.type === 'detail' && currentGoal && (
             <motion.div
               key={`screen-detail-${currentGoal.id}`}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
             >
               <GoalDetailView
                 goal={currentGoal}
@@ -465,10 +465,10 @@ export default function App() {
           {screen.type === 'create' && (
             <motion.div
               key="screen-create"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 24, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.99 }}
+              transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
             >
               <GoalFormView
                 initialTitle={screen.initialTitle}
@@ -483,10 +483,10 @@ export default function App() {
           {screen.type === 'edit' && currentGoal && (
             <motion.div
               key={`screen-edit-${currentGoal.id}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              initial={{ opacity: 0, y: 24, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.99 }}
+              transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
             >
               <GoalFormView
                 initialGoal={currentGoal}

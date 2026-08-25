@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bgGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#1A237E" />
+      <stop offset="100%" stop-color="#0D1B2A" />
+    </linearGradient>
+    <linearGradient id="stepGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4CAF50" />
+      <stop offset="100%" stop-color="#2E7D32" />
+    </linearGradient>
+    <linearGradient id="goldGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+  </defs>
+
+  <rect width="192" height="192" rx="48" fill="url(#bgGrad192)" />
+  <rect x="3" y="3" width="186" height="186" rx="45" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="1.5" />
+
+  <g transform="translate(10, 8) scale(0.34)">
+    <rect x="120" y="340" width="100" height="30" rx="8" fill="rgba(255, 255, 255, 0.15)" />
+    <rect x="220" y="250" width="100" height="30" rx="8" fill="rgba(255, 255, 255, 0.3)" />
+    <rect x="320" y="160" width="90" height="30" rx="8" fill="url(#stepGrad192)" stroke="#81C784" stroke-width="3" />
+    <circle cx="365" cy="115" r="16" fill="url(#goldGrad192)" />
+    <polygon points="365,85 372,110 397,115 372,120 365,145 358,120 333,115 358,110" fill="#FFFBEB" />
+  </g>
+
+  <text x="96" y="164" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="18" font-weight="800" letter-spacing="2.5" fill="#F8FAFC" text-anchor="middle">1STEP</text>
+</svg>
