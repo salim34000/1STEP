@@ -294,25 +294,31 @@ export function resetToSampleGoals(): Goal[] {
 
 export function getStoredIdees(): IdeeProjet[] {
   try {
-    const raw = localStorage.getItem(IDEES_STORAGE_KEY);
+    const raw =
+      localStorage.getItem(IDEES_STORAGE_KEY) ||
+      localStorage.getItem('idees') ||
+      localStorage.getItem('une_etape_idees');
     if (!raw) {
       localStorage.setItem(IDEES_STORAGE_KEY, JSON.stringify(DEFAULT_IDEES));
+      localStorage.setItem('idees', JSON.stringify(DEFAULT_IDEES));
       return DEFAULT_IDEES;
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed;
     }
-    return DEFAULT_IDEES;
+    return [];
   } catch (err) {
     console.error('Erreur de lecture des idées:', err);
-    return DEFAULT_IDEES;
+    return [];
   }
 }
 
 export function saveStoredIdees(idees: IdeeProjet[]): void {
   try {
-    localStorage.setItem(IDEES_STORAGE_KEY, JSON.stringify(idees));
+    const safe = Array.isArray(idees) ? idees : [];
+    localStorage.setItem(IDEES_STORAGE_KEY, JSON.stringify(safe));
+    localStorage.setItem('idees', JSON.stringify(safe));
   } catch (err) {
     console.error('Erreur d’enregistrement des idées:', err);
   }
@@ -325,25 +331,31 @@ export function resetToSampleIdees(): IdeeProjet[] {
 
 export function getStoredReves(): Reve[] {
   try {
-    const raw = localStorage.getItem(REVES_STORAGE_KEY);
+    const raw =
+      localStorage.getItem(REVES_STORAGE_KEY) ||
+      localStorage.getItem('reves') ||
+      localStorage.getItem('une_etape_reves');
     if (!raw) {
       localStorage.setItem(REVES_STORAGE_KEY, JSON.stringify(DEFAULT_REVES));
+      localStorage.setItem('reves', JSON.stringify(DEFAULT_REVES));
       return DEFAULT_REVES;
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed;
     }
-    return DEFAULT_REVES;
+    return [];
   } catch (err) {
     console.error('Erreur de lecture des rêves:', err);
-    return DEFAULT_REVES;
+    return [];
   }
 }
 
 export function saveStoredReves(reves: Reve[]): void {
   try {
-    localStorage.setItem(REVES_STORAGE_KEY, JSON.stringify(reves));
+    const safe = Array.isArray(reves) ? reves : [];
+    localStorage.setItem(REVES_STORAGE_KEY, JSON.stringify(safe));
+    localStorage.setItem('reves', JSON.stringify(safe));
   } catch (err) {
     console.error('Erreur d’enregistrement des rêves:', err);
   }

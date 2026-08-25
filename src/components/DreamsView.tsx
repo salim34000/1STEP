@@ -7,11 +7,8 @@ import {
   Target,
   Trash2,
   Edit3,
-  ArrowRight,
   CheckCircle2,
   Quote,
-  Clock,
-  HeartHandshake,
   Layers,
   ChevronRight,
   X,
@@ -20,17 +17,20 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { sound } from '../utils/audio';
-import { formatISODate } from '../utils/dateUtils';
 
-interface DreamsViewProps {
-  dreams: Reve[];
-  goals: Goal[];
-  onAddDream: (dream: Omit<Reve, 'id' | 'dateCreation'>) => void;
-  onUpdateDream: (dream: Reve) => void;
-  onDeleteDream: (id: string) => void;
-  onDeriveGoalFromDream: (dream: Reve) => void;
-  onSelectGoal: (goalId: string) => void;
-  onResetSampleDreams: () => void;
+export interface DreamsViewProps {
+  reves?: Reve[];
+  dreams?: Reve[];
+  goals?: Goal[];
+  onUpdateReves?: (reves: Reve[]) => void;
+  onAddDream?: (dream: Omit<Reve, 'id' | 'dateCreation'>) => void;
+  onUpdateDream?: (dream: Reve) => void;
+  onDeleteDream?: (id: string) => void;
+  onDeriveGoal?: (dream: Reve) => void;
+  onDeriveGoalFromDream?: (dream: Reve) => void;
+  onNavigateToGoal?: (goalId: string) => void;
+  onSelectGoal?: (goalId: string) => void;
+  onResetSampleDreams?: () => void;
 }
 
 const HORIZONS: DreamHorizon[] = ['Dans 1 an', '3 à 5 ans', '10 ans', 'Dans ma vie'];
@@ -63,15 +63,28 @@ const HORIZON_BADGES: Record<DreamHorizon, { bg: string; text: string; border: s
 };
 
 export const DreamsView: React.FC<DreamsViewProps> = ({
+  reves,
   dreams,
-  goals,
+  goals = [],
+  onUpdateReves,
   onAddDream,
   onUpdateDream,
   onDeleteDream,
+  onDeriveGoal,
   onDeriveGoalFromDream,
+  onNavigateToGoal,
   onSelectGoal,
   onResetSampleDreams,
 }) => {
+  // Safe array normalization
+  const safeDreams: Reve[] = Array.isArray(reves)
+    ? reves
+    : Array.isArray(dreams)
+    ? dreams
+    : [];
+
+  const safeGoals: Goal[] = Array.isArray(goals) ? goals : [];
+
   const [selectedHorizon, setSelectedHorizon] = useState<string>('Tous');
   const [isAddingOpen, setIsAddingOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -79,12 +92,44 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
   const [newMotivation, setNewMotivation] = useState('');
   const [editingDream, setEditingDream] = useState<Reve | null>(null);
 
+  const handleNavigate = onNavigateToGoal || onSelectGoal;
+  const handleDerive = onDeriveGoal || onDeriveGoalFromDream;
+
+  const handleAdd = (data: Omit<Reve, 'id' | 'dateCreation'>) => {
+    if (onAddDream) {
+      onAddDream(data);
+    } else if (onUpdateReves) {
+      const newReve: Reve = {
+        id: `reve-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        ...data,
+        dateCreation: Date.now(),
+      };
+      onUpdateReves([newReve, ...safeDreams]);
+    }
+  };
+
+  const handleUpdate = (updated: Reve) => {
+    if (onUpdateDream) {
+      onUpdateDream(updated);
+    } else if (onUpdateReves) {
+      onUpdateReves(safeDreams.map((d) => (d.id === updated.id ? updated : d)));
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (onDeleteDream) {
+      onDeleteDream(id);
+    } else if (onUpdateReves) {
+      onUpdateReves(safeDreams.filter((d) => d.id !== id));
+    }
+  };
+
   const handleCreateDream = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newMotivation.trim()) return;
 
     sound.click();
-    onAddDream({
+    handleAdd({
       titre: newTitle.trim(),
       horizon: newHorizon,
       motivation: newMotivation.trim(),
@@ -101,13 +146,14 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
     if (!editingDream || !editingDream.titre.trim() || !editingDream.motivation.trim()) return;
 
     sound.click();
-    onUpdateDream(editingDream);
+    handleUpdate(editingDream);
     setEditingDream(null);
   };
 
-  const filteredDreams = dreams.filter((dream) => {
+  const filteredDreams = (Array.isArray(safeDreams) ? safeDreams : []).filter((dream) => {
+    if (!dream) return false;
     if (selectedHorizon === 'Tous') return true;
-    return dream.horizon === selectedHorizon;
+    return (dream.horizon || '3 à 5 ans') === selectedHorizon;
   });
 
   return (
@@ -268,10 +314,12 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
               : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
           }`}
         >
-          Tous les horizons ({dreams.length})
+          Tous les horizons ({safeDreams.length})
         </button>
         {HORIZONS.map((h) => {
-          const count = dreams.filter((d) => d.horizon === h).length;
+          const count = (Array.isArray(safeDreams) ? safeDreams : []).filter(
+            (d) => d && (d.horizon || '3 à 5 ans') === h
+          ).length;
           const isSelected = selectedHorizon === h;
           return (
             <button
@@ -293,13 +341,14 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
       {/* Dreams Cards */}
       <div className="space-y-6">
         <AnimatePresence mode="popLayout">
-          {filteredDreams.map((dream) => {
-            const badge = HORIZON_BADGES[dream.horizon] || HORIZON_BADGES['3 à 5 ans'];
-            // Find linked concrete goals
-            const linkedGoals = goals.filter(
-              (g) =>
-                g.linkedDreamId === dream.id ||
-                (dream.objectifsAssociesIds && dream.objectifsAssociesIds.includes(g.id))
+          {(Array.isArray(filteredDreams) ? filteredDreams : []).map((dream) => {
+            const horizonKey = (dream.horizon as DreamHorizon) || '3 à 5 ans';
+            const badge = HORIZON_BADGES[horizonKey] || HORIZON_BADGES['3 à 5 ans'];
+            
+            // Find linked concrete goals safely
+            const assocIds = Array.isArray(dream.objectifsAssociesIds) ? dream.objectifsAssociesIds : [];
+            const linkedGoals = (Array.isArray(safeGoals) ? safeGoals : []).filter(
+              (g) => g && (g.linkedDreamId === dream.id || assocIds.includes(g.id))
             );
 
             return (
@@ -316,7 +365,7 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                   <span
                     className={`text-xs font-semibold px-3 py-1 rounded-full border ${badge.bg} ${badge.darkBg}`}
                   >
-                    Horizon : {dream.horizon}
+                    Horizon : {dream.horizon || '3 à 5 ans'}
                   </span>
 
                   <div className="flex items-center gap-1">
@@ -332,7 +381,7 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                       type="button"
                       onClick={() => {
                         if (confirm('Supprimer cette aspiration de vos rêves ?')) {
-                          onDeleteDream(dream.id);
+                          handleDelete(dream.id);
                         }
                       }}
                       title="Supprimer ce rêve"
@@ -349,16 +398,18 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                 </h3>
 
                 {/* Motivation Box */}
-                <div className="relative bg-gradient-to-br from-purple-50/50 to-indigo-50/30 dark:from-purple-950/30 dark:to-indigo-950/20 p-4 rounded-2xl border border-purple-100/70 dark:border-purple-900/40 mb-5">
-                  <Quote className="w-5 h-5 text-purple-300 dark:text-purple-700/60 absolute top-3 right-3" />
-                  <p className="text-xs uppercase tracking-widest font-bold text-purple-800/80 dark:text-purple-300 mb-1.5 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-                    <span>Pourquoi ce rêve compte pour moi</span>
-                  </p>
-                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 italic font-serif leading-relaxed">
-                    « {dream.motivation} »
-                  </p>
-                </div>
+                {dream.motivation && (
+                  <div className="relative bg-gradient-to-br from-purple-50/50 to-indigo-50/30 dark:from-purple-950/30 dark:to-indigo-950/20 p-4 rounded-2xl border border-purple-100/70 dark:border-purple-900/40 mb-5">
+                    <Quote className="w-5 h-5 text-purple-300 dark:text-purple-700/60 absolute top-3 right-3" />
+                    <p className="text-xs uppercase tracking-widest font-bold text-purple-800/80 dark:text-purple-300 mb-1.5 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <span>Pourquoi ce rêve compte pour moi</span>
+                    </p>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 italic font-serif leading-relaxed">
+                      « {dream.motivation} »
+                    </p>
+                  </div>
+                )}
 
                 {/* Linked Concrete Goals Section */}
                 <div className="pt-4 border-t border-slate-100 dark:border-zinc-800/80 space-y-3">
@@ -370,29 +421,32 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                       </h4>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onDeriveGoalFromDream(dream)}
-                      className="inline-flex items-center gap-1 py-1.5 px-3 bg-[#1A237E]/10 hover:bg-[#1A237E]/20 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/70 text-[#1A237E] dark:text-indigo-300 rounded-xl font-semibold text-xs transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Dériver un objectif</span>
-                    </button>
+                    {handleDerive && (
+                      <button
+                        type="button"
+                        onClick={() => handleDerive(dream)}
+                        className="inline-flex items-center gap-1 py-1.5 px-3 bg-[#1A237E]/10 hover:bg-[#1A237E]/20 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/70 text-[#1A237E] dark:text-indigo-300 rounded-xl font-semibold text-xs transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Dériver un objectif</span>
+                      </button>
+                    )}
                   </div>
 
                   {/* List of Linked Goals */}
                   {linkedGoals.length > 0 ? (
                     <div className="space-y-2">
                       {linkedGoals.map((goal) => {
-                        const totalSteps = goal.etapes.length;
-                        const completedSteps = goal.etapes.filter((s) => s.termine).length;
+                        const etapes = Array.isArray(goal.etapes) ? goal.etapes : [];
+                        const totalSteps = etapes.length;
+                        const completedSteps = etapes.filter((s) => s && s.termine).length;
                         const isFinished = totalSteps > 0 && completedSteps === totalSteps;
 
                         return (
                           <button
                             key={goal.id}
                             type="button"
-                            onClick={() => onSelectGoal(goal.id)}
+                            onClick={() => handleNavigate && handleNavigate(goal.id)}
                             className="w-full flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-zinc-900/70 hover:bg-slate-100 dark:hover:bg-zinc-900 border border-slate-200/60 dark:border-zinc-800 text-left transition-all group"
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -434,14 +488,16 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                         Aucun objectif d'action n'est encore rattaché à ce rêve.
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => onDeriveGoalFromDream(dream)}
-                        className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-[#1A237E] hover:bg-[#283593] dark:bg-indigo-600 text-white rounded-xl font-medium text-xs transition-all shadow-2xs"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Créer la première étape d'action</span>
-                      </button>
+                      {handleDerive && (
+                        <button
+                          type="button"
+                          onClick={() => handleDerive(dream)}
+                          className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-[#1A237E] hover:bg-[#283593] dark:bg-indigo-600 text-white rounded-xl font-medium text-xs transition-all shadow-2xs"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Créer la première étape d'action</span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -456,7 +512,9 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
               <Compass className="w-6 h-6" />
             </div>
             <h3 className="text-base font-serif font-bold text-slate-900 dark:text-slate-100 mb-1">
-              Aucun rêve dans cet horizon
+              {safeDreams.length === 0
+                ? 'Aucun rêve noté pour le moment'
+                : 'Aucun rêve dans cet horizon'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-4">
               Prenez quelques instants pour imaginer votre vie idéale et ancrer votre première aspiration.
@@ -528,7 +586,7 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
                           setEditingDream({ ...editingDream, horizon: h })
                         }
                         className={`py-1.5 px-3 rounded-xl text-xs font-medium transition-all ${
-                          editingDream.horizon === h
+                          (editingDream.horizon || '3 à 5 ans') === h
                             ? 'bg-[#1A237E] text-white font-semibold'
                             : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400'
                         }`}
@@ -576,16 +634,18 @@ export const DreamsView: React.FC<DreamsViewProps> = ({
       </AnimatePresence>
 
       {/* Discreet sample reset link */}
-      <div className="mt-12 text-center">
-        <button
-          type="button"
-          onClick={onResetSampleDreams}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 uppercase tracking-widest font-medium"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Recharger les exemples de rêves</span>
-        </button>
-      </div>
+      {onResetSampleDreams && (
+        <div className="mt-12 text-center">
+          <button
+            type="button"
+            onClick={onResetSampleDreams}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 uppercase tracking-widest font-medium"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Recharger les exemples de rêves</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -11,11 +11,7 @@ import {
   Sparkles,
   CheckCircle2,
   Search,
-  Tag,
-  FileText,
-  Calendar,
   X,
-  Check,
   RefreshCw,
   Zap,
 } from 'lucide-react';
@@ -23,15 +19,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { formatISODate } from '../utils/dateUtils';
 import { sound } from '../utils/audio';
 
-interface IdeasViewProps {
-  ideas: IdeeProjet[];
-  onAddIdea: (idea: Omit<IdeeProjet, 'id' | 'dateCreation'>) => void;
-  onUpdateIdea: (idea: IdeeProjet) => void;
-  onDeleteIdea: (id: string) => void;
-  onTransformToGoal: (idea: IdeeProjet) => void;
-  onResetSampleIdeas: () => void;
-  goals?: Goal[];
+export interface IdeasViewProps {
+  idees?: IdeeProjet[];
+  ideas?: IdeeProjet[];
+  onUpdateIdees?: (idees: IdeeProjet[]) => void;
+  onAddIdea?: (idea: Omit<IdeeProjet, 'id' | 'dateCreation'>) => void;
+  onUpdateIdea?: (idea: IdeeProjet) => void;
+  onDeleteIdea?: (id: string) => void;
+  onTransformToGoal?: (idea: IdeeProjet) => void;
+  onNavigateToGoal?: (goalId: string) => void;
   onSelectGoal?: (goalId: string) => void;
+  onResetSampleIdeas?: () => void;
+  goals?: Goal[];
 }
 
 const CATEGORIES: IdeaCategory[] = [
@@ -83,15 +82,25 @@ const CATEGORY_STYLES: Record<IdeaCategory, { bg: string; text: string; border: 
 };
 
 export const IdeasView: React.FC<IdeasViewProps> = ({
+  idees,
   ideas,
+  onUpdateIdees,
   onAddIdea,
   onUpdateIdea,
   onDeleteIdea,
   onTransformToGoal,
+  onNavigateToGoal,
+  onSelectGoal,
   onResetSampleIdeas,
   goals = [],
-  onSelectGoal,
 }) => {
+  // Safe array normalization
+  const safeIdees: IdeeProjet[] = Array.isArray(idees)
+    ? idees
+    : Array.isArray(ideas)
+    ? ideas
+    : [];
+
   const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingOpen, setIsAddingOpen] = useState(false);
@@ -100,6 +109,37 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
   const [newNotes, setNewNotes] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [editingIdea, setEditingIdea] = useState<IdeeProjet | null>(null);
+
+  const handleNavigate = onNavigateToGoal || onSelectGoal;
+
+  const handleAdd = (data: Omit<IdeeProjet, 'id' | 'dateCreation'>) => {
+    if (onAddIdea) {
+      onAddIdea(data);
+    } else if (onUpdateIdees) {
+      const newIdea: IdeeProjet = {
+        id: `idee-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        ...data,
+        dateCreation: Date.now(),
+      };
+      onUpdateIdees([newIdea, ...safeIdees]);
+    }
+  };
+
+  const handleUpdate = (updated: IdeeProjet) => {
+    if (onUpdateIdea) {
+      onUpdateIdea(updated);
+    } else if (onUpdateIdees) {
+      onUpdateIdees(safeIdees.map((i) => (i.id === updated.id ? updated : i)));
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (onDeleteIdea) {
+      onDeleteIdea(id);
+    } else if (onUpdateIdees) {
+      onUpdateIdees(safeIdees.filter((i) => i.id !== id));
+    }
+  };
 
   // Speech Recognition support for voice capturing
   const toggleSpeechRecognition = () => {
@@ -127,7 +167,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
       };
 
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
+        const transcript = event?.results?.[0]?.[0]?.transcript;
         if (transcript) {
           if (!newTitle) {
             setNewTitle(transcript.trim());
@@ -159,7 +199,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
     if (!newTitle.trim()) return;
 
     sound.click();
-    onAddIdea({
+    handleAdd({
       titre: newTitle.trim(),
       categorie: newCategory,
       notes: newNotes.trim() || undefined,
@@ -175,17 +215,18 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
     if (!editingIdea || !editingIdea.titre.trim()) return;
 
     sound.click();
-    onUpdateIdea(editingIdea);
+    handleUpdate(editingIdea);
     setEditingIdea(null);
   };
 
-  const filteredIdeas = ideas.filter((idea) => {
-    const matchesCategory =
-      selectedCategory === 'Tous' || idea.categorie === selectedCategory;
-    const matchesSearch =
-      !searchQuery ||
-      idea.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (idea.notes && idea.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredIdeas = (Array.isArray(safeIdees) ? safeIdees : []).filter((idea) => {
+    if (!idea) return false;
+    const cat = idea.categorie || 'Autre';
+    const matchesCategory = selectedCategory === 'Tous' || cat === selectedCategory;
+    const q = searchQuery.toLowerCase().trim();
+    const titleMatch = (idea.titre || '').toLowerCase().includes(q);
+    const notesMatch = idea.notes ? idea.notes.toLowerCase().includes(q) : false;
+    const matchesSearch = !q || titleMatch || notesMatch;
     return matchesCategory && matchesSearch;
   });
 
@@ -394,10 +435,12 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
                 : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
             }`}
           >
-            Tous ({ideas.length})
+            Tous ({safeIdees.length})
           </button>
           {CATEGORIES.map((cat) => {
-            const count = ideas.filter((i) => i.categorie === cat).length;
+            const count = (Array.isArray(safeIdees) ? safeIdees : []).filter(
+              (i) => i && (i.categorie || 'Autre') === cat
+            ).length;
             const isSelected = selectedCategory === cat;
             return (
               <button
@@ -420,10 +463,11 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
       {/* Ideas List */}
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
-          {filteredIdeas.map((idea) => {
-            const style = CATEGORY_STYLES[idea.categorie] || CATEGORY_STYLES.Autre;
+          {(Array.isArray(filteredIdeas) ? filteredIdeas : []).map((idea) => {
+            const categoryKey = (idea.categorie as IdeaCategory) || 'Autre';
+            const style = CATEGORY_STYLES[categoryKey] || CATEGORY_STYLES.Autre;
             const isConverted = !!idea.convertieEnObjectifId;
-            const linkedGoal = isConverted
+            const linkedGoal = isConverted && Array.isArray(goals)
               ? goals.find((g) => g.id === idea.convertieEnObjectifId)
               : null;
 
@@ -443,7 +487,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
                     <span
                       className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${style.bg} ${style.darkBg}`}
                     >
-                      {idea.categorie}
+                      {idea.categorie || 'Autre'}
                     </span>
                     {isConverted && (
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-[#388E3C] dark:text-emerald-400 border border-emerald-200/50 flex items-center gap-1">
@@ -467,7 +511,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
                       type="button"
                       onClick={() => {
                         if (confirm('Supprimer cette idée de l’incubateur ?')) {
-                          onDeleteIdea(idea.id);
+                          handleDelete(idea.id);
                         }
                       }}
                       title="Supprimer l'idée"
@@ -493,19 +537,19 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
                 {/* Footer and Transform Action */}
                 <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Capturée le {formatISODate(new Date(idea.dateCreation))}
+                    Capturée le {formatISODate(new Date(idea.dateCreation || Date.now()))}
                   </span>
 
-                  {isConverted && linkedGoal && onSelectGoal ? (
+                  {isConverted && linkedGoal && handleNavigate ? (
                     <button
                       type="button"
-                      onClick={() => onSelectGoal(linkedGoal.id)}
+                      onClick={() => handleNavigate(linkedGoal.id)}
                       className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#388E3C] dark:text-emerald-300 hover:bg-emerald-100/80 font-medium text-xs transition-colors"
                     >
                       <span>Voir l'objectif associé</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
-                  ) : (
+                  ) : onTransformToGoal ? (
                     <button
                       type="button"
                       onClick={() => onTransformToGoal(idea)}
@@ -515,7 +559,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
                       <span>Transformer en Objectif</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </motion.div>
             );
@@ -528,7 +572,9 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
               <Lightbulb className="w-6 h-6" />
             </div>
             <h3 className="text-base font-serif font-bold text-slate-900 dark:text-slate-100 mb-1">
-              Aucune idée dans cette catégorie
+              {safeIdees.length === 0
+                ? 'Aucune idée enregistrée pour le moment'
+                : 'Aucune idée dans cette catégorie'}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-4">
               Notez toutes les envies ou projets qui vous traversent l'esprit pour y revenir sereinement.
@@ -542,7 +588,7 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
               className="py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-zinc-100 dark:hover:bg-white dark:text-slate-900 text-white rounded-xl text-xs font-semibold transition-all inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Ajouter une idée</span>
+              <span>Noter une idée</span>
             </button>
           </div>
         )}
@@ -647,16 +693,18 @@ export const IdeasView: React.FC<IdeasViewProps> = ({
       </AnimatePresence>
 
       {/* Discreet sample reset link */}
-      <div className="mt-12 text-center">
-        <button
-          type="button"
-          onClick={onResetSampleIdeas}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 uppercase tracking-widest font-medium"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Recharger les exemples d'idées</span>
-        </button>
-      </div>
+      {onResetSampleIdeas && (
+        <div className="mt-12 text-center">
+          <button
+            type="button"
+            onClick={onResetSampleIdeas}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors py-1.5 px-3 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 uppercase tracking-widest font-medium"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Recharger les exemples d'idées</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

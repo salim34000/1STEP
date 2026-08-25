@@ -18,8 +18,10 @@ import {
   saveStoredAgendaEvents,
   getStoredIdees,
   saveStoredIdees,
+  resetToSampleIdees,
   getStoredReves,
   saveStoredReves,
+  resetToSampleReves,
   getStoredJournal,
   saveStoredJournal,
   checkDueReminders,
@@ -44,8 +46,24 @@ export default function App() {
   const [goals, setGoals] = useState<Goal[]>(() => getStoredGoals());
   const [finances, setFinances] = useState<FinancialData>(() => getStoredFinances());
   const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>(() => getStoredAgendaEvents());
-  const [idees, setIdees] = useState<IdeeProjet[]>(() => getStoredIdees());
-  const [reves, setReves] = useState<Reve[]>(() => getStoredReves());
+  const [idees, setIdees] = useState<IdeeProjet[]>(() => {
+    try {
+      const data = getStoredIdees();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error('Erreur initialisation idées:', err);
+      return [];
+    }
+  });
+  const [reves, setReves] = useState<Reve[]>(() => {
+    try {
+      const data = getStoredReves();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error('Erreur initialisation rêves:', err);
+      return [];
+    }
+  });
   const [journal, setJournal] = useState<JournalEntry[]>(() => getStoredJournal());
 
   const [screen, setScreen] = useState<AppScreen>({ type: 'list' });
@@ -421,6 +439,7 @@ export default function App() {
                 goals={goals}
                 onTransformToGoal={handleTransformIdeaToGoal}
                 onNavigateToGoal={handleNavigateToGoalDetail}
+                onResetSampleIdeas={() => setIdees(resetToSampleIdees())}
               />
             </motion.div>
           )}
@@ -439,6 +458,7 @@ export default function App() {
                 goals={goals}
                 onDeriveGoal={handleDeriveGoalFromDream}
                 onNavigateToGoal={handleNavigateToGoalDetail}
+                onResetSampleDreams={() => setReves(resetToSampleReves())}
               />
             </motion.div>
           )}
