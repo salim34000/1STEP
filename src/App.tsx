@@ -40,6 +40,7 @@ import { DreamsView } from './components/DreamsView';
 import { BottomNav, MainTab } from './components/BottomNav';
 import { NotificationBanner } from './components/NotificationBanner';
 import { BackupModal } from './components/BackupModal';
+import { VoiceAgentWidget } from './components/VoiceAgentWidget';
 import { AnimatePresence, motion } from 'motion/react';
 
 export default function App() {
@@ -539,6 +540,7 @@ export default function App() {
         journal={journal}
         onRestoreData={handleRestoreData}
       />
+      <VoiceAgentWidget />
     </div>
   );
 }

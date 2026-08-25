@@ -82,6 +82,12 @@ export interface IdeeProjet {
   notes?: string;
   dateCreation: number;
   convertieEnObjectifId?: string;
+  pinned?: boolean;
+  archived?: boolean;
+  aiExpansion?: {
+    pistes: string[];
+    vigilance: string;
+  };
 }
 
 export type DreamHorizon = 'Dans 1 an' | '3 à 5 ans' | '10 ans' | 'Dans ma vie';
